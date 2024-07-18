@@ -1,16 +1,15 @@
 package com.vterroso.carregistry.service.impl;
 
-import com.vterroso.carregistry.controller.dto.BrandDTO;
-import com.vterroso.carregistry.controller.mapper.BrandMapper;
 import com.vterroso.carregistry.repository.BrandRepository;
 import com.vterroso.carregistry.repository.entity.BrandEntity;
 import com.vterroso.carregistry.repository.mapper.BrandEntityMapper;
 import com.vterroso.carregistry.service.BrandService;
 import com.vterroso.carregistry.service.model.Brand;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
 
 import java.util.List;
 import java.util.Optional;
@@ -18,15 +17,11 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class BrandServiceImpl implements BrandService {
-    @Autowired
-    private BrandRepository brandRepository;
 
-    @Autowired
-    private BrandEntityMapper brandEntityMapper;
-
-    @Autowired
-    private BrandMapper brandMapper;
+    private final BrandRepository brandRepository;
+    private final BrandEntityMapper brandEntityMapper;
 
     @Override
     public List<Brand> getAllBrands() {
@@ -34,6 +29,7 @@ public class BrandServiceImpl implements BrandService {
                 .map(brandEntityMapper::brandEntityToBrand)
                 .collect(Collectors.toList());
     }
+
     @Override
     public Optional<Brand> getBrandById(Integer id) {
         return brandRepository.findById(id)
@@ -46,22 +42,23 @@ public class BrandServiceImpl implements BrandService {
         BrandEntity savedBrandEntity = brandRepository.save(brandEntity);
         return brandEntityMapper.brandEntityToBrand(savedBrandEntity);
     }
+
     @Override
-    public ResponseEntity<BrandDTO> updateBrand(Integer id, Brand brand) {
+    public Optional<Brand> updateBrand(Integer id, Brand brand) {
         return brandRepository.findById(id).map(existingBrandEntity -> {
             existingBrandEntity.setName(brand.getName());
             existingBrandEntity.setWarranty(brand.getWarranty());
             existingBrandEntity.setCountry(brand.getCountry());
+
             BrandEntity updatedBrandEntity = brandRepository.save(existingBrandEntity);
-            Brand updatedBrand = brandEntityMapper.brandEntityToBrand(updatedBrandEntity);
-            BrandDTO updatedBrandDTO = brandMapper.brandToBrandDTO(updatedBrand);
-            return ResponseEntity.ok(updatedBrandDTO);
-        }).orElseGet(() -> ResponseEntity.notFound().build());
+            return brandEntityMapper.brandEntityToBrand(updatedBrandEntity);
+        });
     }
+
     @Override
-    public Optional<BrandEntity> deleteBrand(Integer id) {
-        Optional<BrandEntity> brandOptional = brandRepository.findById(id);
-        brandOptional.ifPresent(brand -> brandRepository.delete(brand));
-        return brandOptional;
+    public void deleteBrand(Integer id) {
+        BrandEntity brandEntity = brandRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Brand not found"));
+        brandRepository.delete(brandEntity);
     }
 }

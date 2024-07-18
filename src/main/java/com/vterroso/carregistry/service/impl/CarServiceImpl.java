@@ -7,43 +7,45 @@ import com.vterroso.carregistry.repository.mapper.BrandEntityMapper;
 import com.vterroso.carregistry.repository.mapper.CarEntityMapper;
 import com.vterroso.carregistry.service.CarService;
 import com.vterroso.carregistry.service.model.Car;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class CarServiceImpl implements CarService {
 
-    @Autowired
-    private CarRepository carRepository;
+    private final CarRepository carRepository;
+    private final BrandRepository brandRepository;
+    private final CarEntityMapper carEntityMapper;
+    private final BrandEntityMapper brandEntityMapper;
 
-    @Autowired
-    private BrandRepository brandRepository;
-
-    @Autowired
-    private CarEntityMapper carEntityMapper;
-
-    @Autowired
-    private BrandEntityMapper brandEntityMapper;
-
-
+    @Async("taskExecutor")
     @Override
-    public List<Car> getAllCars() {
-        return carRepository.findAll().stream()
+    public CompletableFuture<List<Car>> getAllCars() {
+        long start = System.currentTimeMillis();
+        List<Car> cars = carRepository.findAll().stream()
                 .map(carEntityMapper::carEntityToCar)
-                .collect(Collectors.toList());
+                .toList();
+        long end = System.currentTimeMillis();
+        log.info("Time elapsed: {} ms", end - start);
+        return CompletableFuture.completedFuture(cars);
     }
 
     @Override
     public Optional<Car> getCarById(Integer id) {
         return carRepository.findById(id)
                 .map(carEntityMapper::carEntityToCar);
-
     }
 
     @Override
@@ -74,8 +76,11 @@ public class CarServiceImpl implements CarService {
             return carEntityMapper.carEntityToCar(updatedCarEntity);
         });
     }
+
     @Override
     public void deleteCar(Integer id) {
-        carRepository.findById(id).ifPresent(carRepository::delete);
+        CarEntity carEntity = carRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Car not found"));
+        carRepository.delete(carEntity);
     }
 }
