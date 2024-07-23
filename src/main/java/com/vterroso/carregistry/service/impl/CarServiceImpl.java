@@ -1,24 +1,22 @@
 package com.vterroso.carregistry.service.impl;
 
+import com.vterroso.carregistry.controller.mapper.CarMapper;
 import com.vterroso.carregistry.repository.BrandRepository;
 import com.vterroso.carregistry.repository.CarRepository;
 import com.vterroso.carregistry.repository.entity.CarEntity;
 import com.vterroso.carregistry.repository.mapper.BrandEntityMapper;
 import com.vterroso.carregistry.repository.mapper.CarEntityMapper;
 import com.vterroso.carregistry.service.CarService;
+import com.vterroso.carregistry.service.model.Brand;
 import com.vterroso.carregistry.service.model.Car;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -30,16 +28,12 @@ public class CarServiceImpl implements CarService {
     private final CarEntityMapper carEntityMapper;
     private final BrandEntityMapper brandEntityMapper;
 
-    @Async("taskExecutor")
+
     @Override
-    public CompletableFuture<List<Car>> getAllCars() {
-        long start = System.currentTimeMillis();
-        List<Car> cars = carRepository.findAll().stream()
+    public List<Car> getAllCars() {
+        return carRepository.findAll().stream()
                 .map(carEntityMapper::carEntityToCar)
                 .toList();
-        long end = System.currentTimeMillis();
-        log.info("Time elapsed: {} ms", end - start);
-        return CompletableFuture.completedFuture(cars);
     }
 
     @Override
@@ -50,9 +44,22 @@ public class CarServiceImpl implements CarService {
 
     @Override
     public Car addCar(Car car) {
+        // Verify that the brand is not null and has an id
+        if (car.getBrand() == null || car.getBrand().getId() == null) {
+            throw new IllegalArgumentException("Brand must be specified.");
+        }
+        log.info("Adding car: {}", car);
+        Brand brand = brandRepository.findById(car.getBrand().getId())
+                .map(brandEntityMapper::brandEntityToBrand)
+                .orElseThrow(() -> new IllegalArgumentException("Brand does not exist."));
+
+        car.setBrand(brand);
+
         CarEntity carEntity = carEntityMapper.carToCarEntity(car);
         carEntity.setBrand(brandEntityMapper.brandToBrandEntity(car.getBrand()));
         CarEntity savedCarEntity = carRepository.save(carEntity);
+
+        log.info("Car added: {}", savedCarEntity);
         return carEntityMapper.carEntityToCar(savedCarEntity);
     }
 
@@ -81,6 +88,7 @@ public class CarServiceImpl implements CarService {
     public void deleteCar(Integer id) {
         CarEntity carEntity = carRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Car not found"));
+        log.info("Deleting car: {}", carEntity);
         carRepository.delete(carEntity);
     }
 }

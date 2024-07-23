@@ -6,9 +6,10 @@ import org.springframework.http.ResponseEntity;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 public interface BrandService {
-    List<Brand> getAllBrands();
+    public List<Brand> getAllBrands();
     Optional<Brand> getBrandById(Integer id);
     Brand addBrand(Brand brand);
     Optional<Brand> updateBrand(Integer id, Brand brand);

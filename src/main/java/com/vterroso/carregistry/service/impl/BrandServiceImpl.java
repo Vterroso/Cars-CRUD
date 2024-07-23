@@ -1,5 +1,6 @@
 package com.vterroso.carregistry.service.impl;
 
+import com.vterroso.carregistry.controller.dto.BrandDTO;
 import com.vterroso.carregistry.repository.BrandRepository;
 import com.vterroso.carregistry.repository.entity.BrandEntity;
 import com.vterroso.carregistry.repository.mapper.BrandEntityMapper;
@@ -7,13 +8,13 @@ import com.vterroso.carregistry.service.BrandService;
 import com.vterroso.carregistry.service.model.Brand;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -23,16 +24,18 @@ public class BrandServiceImpl implements BrandService {
     private final BrandRepository brandRepository;
     private final BrandEntityMapper brandEntityMapper;
 
+
     @Override
     public List<Brand> getAllBrands() {
-        return brandRepository.findAll().stream()
+        return brandRepository.findAllWithCars().stream()
                 .map(brandEntityMapper::brandEntityToBrand)
-                .collect(Collectors.toList());
+                .toList();
+
     }
 
     @Override
     public Optional<Brand> getBrandById(Integer id) {
-        return brandRepository.findById(id)
+        return brandRepository.findByIdWithCars(id)
                 .map(brandEntityMapper::brandEntityToBrand);
     }
 

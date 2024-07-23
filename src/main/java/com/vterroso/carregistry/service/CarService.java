@@ -4,10 +4,9 @@ import com.vterroso.carregistry.service.model.Car;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 
 public interface CarService {
-    CompletableFuture<List<Car>> getAllCars();
+    List<Car> getAllCars();
     Optional<Car> getCarById(Integer id);
     Car addCar(Car car);
     Optional<Car> updateCar(Integer id, Car car);

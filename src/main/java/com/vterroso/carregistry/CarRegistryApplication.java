@@ -10,7 +10,4 @@ public class CarRegistryApplication {
 		SpringApplication.run(CarRegistryApplication.class, args);
 	}
 
-	//Crear un coche
-
-	//Crear una marca
 }

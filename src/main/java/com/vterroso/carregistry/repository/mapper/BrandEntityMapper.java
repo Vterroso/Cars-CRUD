@@ -9,6 +9,7 @@ import java.util.List;
 @Mapper(componentModel = "spring")
 public interface BrandEntityMapper {
     Brand brandEntityToBrand(BrandEntity brandEntity);
+
     BrandEntity brandToBrandEntity(Brand brand);
 
     List<Brand> brandEntityToBrandList(List<BrandEntity> brandEntityList);
