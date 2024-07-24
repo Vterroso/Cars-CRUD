@@ -51,10 +51,10 @@ public class SecurityConfig {
         .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .authorizeHttpRequests( authorize -> authorize
                 .requestMatchers(HttpMethod.POST, "/login", "/signup").permitAll()
-                .requestMatchers(HttpMethod.GET, "/cars/**", "/brands/**").hasAnyRole("CLIENT", "VENDOR")
-                .requestMatchers(HttpMethod.POST, "/cars/**", "/brands/**").hasRole("VENDOR")
-                .requestMatchers(HttpMethod.PUT, "/cars/**", "/brands/**").hasRole("VENDOR")
-                .requestMatchers(HttpMethod.DELETE, "/cars/**", "/brands/**").hasRole("VENDOR")
+                .requestMatchers(HttpMethod.GET, "/cars/**", "/brands/**").permitAll()
+                .requestMatchers(HttpMethod.POST, "/cars/**", "/brands/**").permitAll()
+                .requestMatchers(HttpMethod.PUT, "/cars/**", "/brands/**").permitAll()
+                .requestMatchers(HttpMethod.DELETE, "/cars/**", "/brands/**").permitAll()
 
                 .anyRequest().authenticated())
         .authenticationProvider(authenticationProvider())

@@ -11,7 +11,6 @@ import java.util.List;
 @Mapper(componentModel = "spring")
 public interface CarEntityMapper {
 
-        CarEntityMapper mapper = Mappers.getMapper(CarEntityMapper.class);
 
         @Mapping(target = "brand.carEntityList", ignore = true)
         CarEntity carToCarEntity(Car car);

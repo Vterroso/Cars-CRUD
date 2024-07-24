@@ -42,7 +42,7 @@ public class CarController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @PostMapping
+    @PostMapping("/add")
     @PreAuthorize("hasRole('VENDOR')")
     public ResponseEntity<CarWithBrandDTO> createCar(@RequestBody CarWithBrandDTO carWithBrandDTO) {
         try {

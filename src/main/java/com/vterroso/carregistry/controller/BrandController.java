@@ -37,7 +37,7 @@ public class BrandController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @PostMapping
+    @PostMapping("/add")
     @PreAuthorize("hasRole('VENDOR')")
     public ResponseEntity<BrandDTO> createBrand(@RequestBody BrandDTO brandDTO) {
         Brand brand = brandMapper.brandDTOToBrand(brandDTO);
