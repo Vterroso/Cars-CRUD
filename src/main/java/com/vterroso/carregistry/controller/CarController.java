@@ -5,12 +5,15 @@ import com.vterroso.carregistry.controller.mapper.CarMapper;
 import com.vterroso.carregistry.service.CarService;
 import com.vterroso.carregistry.service.model.Car;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-
+import java.util.concurrent.CompletableFuture;
+@Slf4j
 @RestController
 @RequestMapping("/cars")
 @RequiredArgsConstructor
@@ -21,16 +24,16 @@ public class CarController {
 
     @GetMapping
     @PreAuthorize("hasAnyRole('CLIENT', 'VENDOR')")
-    public ResponseEntity<?> getAllCars() {
+    public ResponseEntity<List<CarWithBrandDTO>> getAllCars() {
         try {
-            List<Car> cars = carService.getAllCars();
+            List<Car> cars = carService.getAllCars().get();
             List<CarWithBrandDTO> carWithBrandDTOs = cars.stream()
                     .map(carMapper::carToCarWithBrandDTO)
                     .toList();
             return ResponseEntity.ok(carWithBrandDTOs);
         } catch (Exception e) {
-            return ResponseEntity.notFound().build();
-
+            log.error("Error fetching cars", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 

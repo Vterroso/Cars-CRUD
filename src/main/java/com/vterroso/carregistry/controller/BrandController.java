@@ -10,6 +10,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 @RestController
 @RequestMapping("/brands")
@@ -21,12 +22,13 @@ public class BrandController {
 
     @GetMapping
     @PreAuthorize("hasAnyRole('CLIENT', 'VENDOR')")
-    public ResponseEntity<List<BrandDTO>> getAllBrands() {
-        List<Brand> brands = (List<Brand>) brandService.getAllBrands();
-        List<BrandDTO> brandDTOs = brands.stream()
-                .map(brandMapper::brandToBrandDTO)
-                .toList();
-        return ResponseEntity.ok(brandDTOs);
+    public CompletableFuture<ResponseEntity<List<BrandDTO>>> getAllBrands() {
+        return brandService.getAllBrands().thenApply(brands -> {
+            List<BrandDTO> brandDTOs = brands.stream()
+                    .map(brandMapper::brandToBrandDTO)
+                    .toList();
+            return ResponseEntity.ok(brandDTOs);
+        });
     }
 
     @GetMapping("/{id}")

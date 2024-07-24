@@ -1,6 +1,5 @@
 package com.vterroso.carregistry.service.impl;
 
-import com.vterroso.carregistry.controller.mapper.CarMapper;
 import com.vterroso.carregistry.repository.BrandRepository;
 import com.vterroso.carregistry.repository.CarRepository;
 import com.vterroso.carregistry.repository.entity.CarEntity;
@@ -11,12 +10,16 @@ import com.vterroso.carregistry.service.model.Brand;
 import com.vterroso.carregistry.service.model.Car;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Hibernate;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 @Service
@@ -29,14 +32,21 @@ public class CarServiceImpl implements CarService {
     private final BrandEntityMapper brandEntityMapper;
 
 
+    @Async("taskExecutor")
     @Override
-    public List<Car> getAllCars() {
-        return carRepository.findAll().stream()
+    public CompletableFuture<List<Car>> getAllCars() {
+        long start = System.currentTimeMillis();
+        List<Car> cars = carRepository.findAllWithBrand().stream()
                 .map(carEntityMapper::carEntityToCar)
                 .toList();
+        long end = System.currentTimeMillis();
+        log.info("Time elapsed: {} ms", end - start);
+        return CompletableFuture.completedFuture(cars);
     }
 
-    @Override
+
+
+        @Override
     public Optional<Car> getCarById(Integer id) {
         return carRepository.findById(id)
                 .map(carEntityMapper::carEntityToCar);
