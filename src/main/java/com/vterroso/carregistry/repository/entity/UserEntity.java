@@ -33,6 +33,10 @@ public class UserEntity implements UserDetails {
 
     String role;
 
+    @Lob
+    @Column(columnDefinition = "LONGBLOB")
+    String image;
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority(role));

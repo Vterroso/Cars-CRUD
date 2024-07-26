@@ -7,7 +7,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 public interface BrandService {
-    public CompletableFuture<List<Brand>> getAllBrands();
+    CompletableFuture<List<Brand>> getAllBrands();
     Optional<Brand> getBrandById(Integer id);
     Brand addBrand(Brand brand);
     Optional<Brand> updateBrand(Integer id, Brand brand);

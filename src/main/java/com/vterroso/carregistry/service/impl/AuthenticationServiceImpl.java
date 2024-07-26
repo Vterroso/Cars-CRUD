@@ -11,6 +11,9 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
 
 @Service
 @RequiredArgsConstructor
@@ -45,5 +48,11 @@ public class AuthenticationServiceImpl {
         var jwt = jwtService.generateToken(user);
         return LoginResponse.builder().jwt(jwt).build();
     }
+
+    // Add image
+    public void addImage(Long id, MultipartFile image) throws IOException {
+        userService.addUserImage(id, image);
+    }
+
 
 }

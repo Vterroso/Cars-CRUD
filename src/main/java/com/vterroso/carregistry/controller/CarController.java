@@ -6,11 +6,17 @@ import com.vterroso.carregistry.service.CarService;
 import com.vterroso.carregistry.service.model.Car;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
 
 @Slf4j
 @RestController
@@ -72,4 +78,46 @@ public class CarController {
         carService.deleteCar(id);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping(value = "/downloadCars")
+    @PreAuthorize("hasAnyRole('VENDOR','CLIENT')")
+    public ResponseEntity<?> downloadCars()throws IOException {
+        // Set the content type and attachment header
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+        headers.setContentDispositionFormData("attachement","cars.csv");
+
+        // Download cars
+        byte[] csvBytes = carService.getCarsCsv().getBytes();
+        log.info("Cars downloaded");
+        return new ResponseEntity<>(csvBytes,headers, HttpStatus.OK);
+    }
+
+    @PostMapping(value = "/uploadCsv", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('VENDOR')")
+    public ResponseEntity<?> uploadCsv(@RequestParam(value = "file")MultipartFile file) {
+
+        if (file.isEmpty()){
+            log.error("The file is empty");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+
+        }
+
+        if(Objects.requireNonNull(file.getOriginalFilename()).endsWith(".csv")){
+            log.info("File name: {}", file.getOriginalFilename());
+
+            // Add users from csv
+            List<CarWithBrandDTO> carsList = carMapper.carListToCarWithBrandDTOList(carService.uploadCars(file));
+            log.info("File successfully updated.");
+            return ResponseEntity.ok(carsList);
+        }
+
+        log.error("The file is not a csv file");
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+
+    }
+
+
+
+
 }

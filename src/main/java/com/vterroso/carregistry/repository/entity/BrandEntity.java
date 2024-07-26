@@ -5,7 +5,6 @@ import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -24,7 +23,5 @@ public class BrandEntity {
     private String country;
 
     @OneToMany(mappedBy = "brand", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.LAZY)
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    private List<CarEntity> carEntityList = new ArrayList<>();
+    private List<CarEntity> carEntityList;
 }
